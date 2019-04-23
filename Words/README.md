@@ -7,5 +7,7 @@ I will document this in the documentation soon.
 The sample txt file needs to be used to run this program. This is NOT going to be our dictionary.
 More to come...
 
+Update: txt file must be outside of the src to run the program
+
 - Brian
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
