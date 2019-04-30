@@ -1,3 +1,10 @@
+4/30/2019
+I think have finished both of the items below: final dictionary file and the code that scrambles. Everything that 
+deals with the words should be finished. I will upload the final things soon.
+
+-Brian 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
 4/29/2019
 The code for grabbing from the text file is done and completed. It should work for multiple rounds now. 
 Duplication is not allowed unless we run out of words in the file.
