@@ -2,7 +2,7 @@
 I think have finished both of the items below: final dictionary file and the code that scrambles. Everything that 
 deals with the words should be finished. I will upload the final things soon.
 
--Brian 
+- Brian 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 4/29/2019
