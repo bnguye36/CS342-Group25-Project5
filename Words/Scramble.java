@@ -1,13 +1,10 @@
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
-
+/* 4/29/2019 Update
+ * Added some stuff */
 /*Class that contains the instructions*/
 class instructions
 {
@@ -27,34 +24,30 @@ class instructions
 	}
 }
 
-/*Class that contains the important stuff for the game*/
+/* Class that contains the important stuff for the game */
 /*
  * Inner classes include (short description):
  * - Words: Functions and data members that help create the three words that will be used in each round. Each round would have different words (ideally)
  * */
 class Game
 {
+	boolean wordsSetBool = false;
+	int numWordsUsed = 0;
+	
 	String word = null;
 	String word2 = null;
 	String word3 = null;
+	
+	String randomizeWord = null;
+	String randomizeWord2 = null;
+	String randomizeWord3 = null;
 	
 	int numGameWords = 3;		//The number of words each round we decided on
 	Words myWords = new Words();
 	
 	/*Words class*/
 	class Words
-	{
-		/*
-		 *  $$For Ali to look at$$
-		 *  You can either tell me how you want to do this to aid in your part, or use what I have done for you. I have two options
-		 *  I have stored the three words in their own variables called "word", "word2", and "word3"
-		 *  or you can access the words in the arraylist called "wordsToGuess"
-		 *  
-		 *  I do this depending on how the group wants to handle the rest of the game
-		 * */
-		
-		public ArrayList<String> wordsToGuess = new ArrayList<String>();		//The three words that are to be guessed
-		
+	{		
 		/*Num words of dictionary (We agreed 15 is good, but actually maybe too little)*/
 		public int numWords = 10;
 		
@@ -75,12 +68,41 @@ class Game
 		}
 		
 		/*
+		 * Function name: allowDuplicates
+		 * Importance: Function allows the reuse of words in the dictionary, if the dictionary is not big enough/game goes on forever
+		 * @param: NONE
+		 * */
+		public void allowDuplicates()
+		{
+			if(numWords - numWordsUsed <= 2)
+			{
+				System.out.println("Allow duplicates");
+				
+				numWordsUsed = 0;
+				
+				for (int i = 1; i <= numWords; i++)
+				{
+					wordsUsed.put(i, false);
+				}
+			}
+			
+			else 
+			{
+				return;
+			}
+		}
+		
+		/*
 		 * Function Name: getFromFile()
 		 * Importance: gets three words from the file for each round
 		 * @param: NONE
 		 * */
 		public void getFromFile() throws IOException
 		{
+			
+			allowDuplicates();	//Reuse words in dictionary if words run out
+			
+			
 			/* Within this block of code, I produce a random line number between 1
 			 *  and numWords (the number of words in the dictionary)
 			 */
@@ -139,6 +161,7 @@ class Game
 						else if(word3 == null)
 						{
 							word3 = line;
+							wordsSetBool = true;
 						}
 						
 						else 
@@ -146,7 +169,7 @@ class Game
 							break;
 						}
 						
-						wordsToGuess.add(line);
+						numWordsUsed++;
 						
 					}
 					
@@ -155,8 +178,27 @@ class Game
 				br.close();		//Close file
 			}
 				
+		}
+		
+		/*
+		 * Function Name: clearWords
+		 * Clears words for the next round. Must do this to get new words from the text file
+		 * @param: NONE
+		 * */
+		public void clearWords()
+		{
+			// Clear these word items to null
+			// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+			word = null;
+			word2 = null;
+			word3 = null;
 			
+			randomizeWord = null;
+			randomizeWord2 = null;
+			randomizeWord3 = null;
+			// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 			
+			wordsSetBool = false;
 		}
 		
 	}
@@ -168,14 +210,27 @@ public class Scramble {
 	
 	public static void main(String[] args) throws IOException
 	{
+		//Sample test
 		Game game = new Game();
-		game.myWords.setWordsUsed();
-		game.myWords.getFromFile();
+		game.myWords.setWordsUsed();		//Set words used to false for all words
 		
-		System.out.println(game.word);
-		System.out.println(game.word2);
-		System.out.println(game.word3);
-		
+		for(int i = 0; i < 7; i++)
+		{
+			System.out.println("Clearing words");
+			game.myWords.clearWords();		//Must clear words to create new words
+			
+			System.out.println("Getting three words from file");
+			game.myWords.getFromFile();
+			
+			//Print out the words that were generated
+			System.out.println();
+			System.out.println("-------------------------------");
+			System.out.println(game.word);
+			System.out.println(game.word2);
+			System.out.println(game.word3);
+			System.out.println("-------------------------------");
+			System.out.println();
+		}
 		
 	}
 }
