@@ -1,11 +1,11 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
-/* 4/29/2019 Update
- * Added some stuff */
-/*Class that contains the instructions*/
+/* Final update for text file */
+/* Class that contains the instructions */
 class instructions
 {
 	/*
@@ -48,8 +48,8 @@ class Game
 	/*Words class*/
 	class Words
 	{		
-		/*Num words of dictionary (We agreed 15 is good, but actually maybe too little)*/
-		public int numWords = 10;
+		/* Dictionary size of 30 words */
+		public int numWords = 30;
 		
 		/*HashMap to keep track if a word was already used to play the game. Don't want any repeats!*/
 		public HashMap<Integer, Boolean> wordsUsed = new HashMap<Integer, Boolean>();
@@ -74,18 +74,22 @@ class Game
 		 * */
 		public void allowDuplicates()
 		{
+			/* Less than 3 words remaining in dictionary, can reuse words now, 
+			   but reset the whole dictionary to get a better distribution */
 			if(numWords - numWordsUsed <= 2)
 			{
 				System.out.println("Allow duplicates");
 				
-				numWordsUsed = 0;
+				numWordsUsed = 0;			
 				
+				// Set hashmap to false to allow reuse of lines in txt file
 				for (int i = 1; i <= numWords; i++)
 				{
 					wordsUsed.put(i, false);
 				}
 			}
 			
+			// Duplicates not allowed as we have enough words
 			else 
 			{
 				return;
@@ -113,6 +117,7 @@ class Game
 			int randNum = rand.nextInt(max - min + 1) + min;
 			//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 			
+			// Loop through to find a line we haven't used yet
 			for(int i = 0; i < numGameWords; i++)
 			{
 				//Loop is here so I can make sure the line I get has never been used in the game yet
@@ -134,7 +139,7 @@ class Game
 				/*Stuff to read the text file*/
 				// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 				int lineNum = 0;
-				BufferedReader br = new BufferedReader(new FileReader("Names.txt"));
+				BufferedReader br = new BufferedReader(new FileReader("FinalDictionary.txt"));
 				String line = null;
 				// = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 				
@@ -148,26 +153,34 @@ class Game
 					{
 						
 						/*If statements to fill the words into the game*/
+						// - - - - - - - - Start IF-ElSE-STATEMENTS - - - - - - - 
 						if(word == null)
 						{
 							word = line;
+							randomizeWord = shuffle(word);
 						}
 						
 						else if (word2 == null)
 						{
 							word2 = line;
+							randomizeWord2 = shuffle(word2);
 						}
 						
 						else if(word3 == null)
 						{
 							word3 = line;
+							randomizeWord3 = shuffle(word3);
+							
 							wordsSetBool = true;
+							
 						}
 						
+						// Stop getting words (we already got all three words for a round)
 						else 
 						{
 							break;
 						}
+						// - - - - - - - - End IF-ElSE-STATEMENTS - - - - - - - 
 						
 						numWordsUsed++;
 						
@@ -182,12 +195,12 @@ class Game
 		
 		/*
 		 * Function Name: clearWords
-		 * Clears words for the next round. Must do this to get new words from the text file
+		 * Importance: Clears words for the next round. Must do this to get new words from the text file
 		 * @param: NONE
 		 * */
 		public void clearWords()
 		{
-			// Clear these word items to null
+			/* Clear these word items to null */
 			// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 			word = null;
 			word2 = null;
@@ -198,7 +211,44 @@ class Game
 			randomizeWord3 = null;
 			// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 			
-			wordsSetBool = false;
+			wordsSetBool = false;		// Used for debugging only
+		}
+		
+		/*
+		 * Function Name: Shuffle
+		 * Importance: Shuffles a string
+		 * @param: (String input)
+		 * Return value: String - a scrambled string
+		 * */
+		public String shuffle(String input)
+		{
+			
+			ArrayList<Character> charAL = new ArrayList<Character>();
+			
+			// Store the characters of the string into a ArrayList
+			for(char c:input.toCharArray())
+			{
+				charAL.add(c);
+			}
+			
+			StringBuilder output = new StringBuilder(input.length());		//Use this to build the string
+			
+			// Work to randomize the string
+			while(charAL.size() != 0)
+			{
+				/* Use a random number to randomize the string */
+				// - - - - - - - - - - - - - - - - - - - - - - - -
+				int min = 0;
+				int max = charAL.size() - 1;
+				Random rand = new Random();
+				int randNum = rand.nextInt((max - min) + 1) + min;
+				// - - - - - - - - - - - - - - - - - - - - - - - -
+				
+				output.append(charAL.remove(randNum));		//Append to builder to make a scrambled string
+			}
+			
+		
+			return output.toString();		// Return a scrambled string 
 		}
 		
 	}
@@ -210,26 +260,33 @@ public class Scramble {
 	
 	public static void main(String[] args) throws IOException
 	{
-		//Sample test
+		// Sample test
 		Game game = new Game();
-		game.myWords.setWordsUsed();		//Set words used to false for all words
+		game.myWords.setWordsUsed();		//Set words used to false for all words (Must do this)
 		
-		for(int i = 0; i < 7; i++)
+		for(int i = 0; i < 11; i++)
 		{
 			System.out.println("Clearing words");
 			game.myWords.clearWords();		//Must clear words to create new words
 			
 			System.out.println("Getting three words from file");
-			game.myWords.getFromFile();
+			game.myWords.getFromFile();		// Get words from text file
 			
 			//Print out the words that were generated
 			System.out.println();
+			System.out.println("Real words");
 			System.out.println("-------------------------------");
 			System.out.println(game.word);
 			System.out.println(game.word2);
 			System.out.println(game.word3);
 			System.out.println("-------------------------------");
 			System.out.println();
+			System.out.println("Scrambled words");
+			System.out.println("-------------------------------");
+			System.out.println(game.randomizeWord);
+			System.out.println(game.randomizeWord2);
+			System.out.println(game.randomizeWord3);
+			System.out.println("-------------------------------");
 		}
 		
 	}
