@@ -18,3 +18,26 @@ random. Once a word has been obtain it is scrambled and ready to be used in game
          Will have a cool background image.
       
 
+Section 3 - Low level design 
+
+Class Instructions: Class that contains the instructions for the game
+  - Functions: instructions()
+  * Importance: displays instructions to people who want to play 
+
+Class Game: Class that contains the important stuff for the game. Functions and data members that help
+create the three words that will be used for each round. 
+  - Class Words: A inner class that will do all the work to get the three words for the game
+    - Function: setWordsUsed()
+      * Importance: sets the words to false for each line to say we did not use the word yet
+    - Function: allowDuplicates()
+      * Importance: allows the game to use duplicates when we don't have enough words left in the dictionary file
+    - Function: getFromFile()
+      * Importance: gets words from the file
+    - Function: clearWords()
+      * Importance: clears words for each round
+    - Function: Shuffle()
+      * Importance: shuffles/scrambles word
+      
+      
+Model and Interactions:
+DIAGRAMS GOES HERE!
