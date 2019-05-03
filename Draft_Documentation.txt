@@ -1,0 +1,20 @@
+Draft of the final project documentation
+
+Section 1 - Purpose of this project
+The project is for CS 342. We are to create a network game of at least 4 players.
+The basic principle of the game is to guess three scrambled words in less than 2 mintues.
+The first player to win three rounds wins the game!
+
+Section 2 - High level entities 
+
+1) The Words are obtain from a dictionary file that we made. We designed it in a way
+where we keep track of which words we use so that we use all the words in the dictionary file.
+If we need more words than there are available, then we start over over. Getting the words from the dictionary file is 
+random. Once a word has been obtain it is scrambled and ready to be used in game.
+
+2) Client side:
+  - GUI: Gui is similiar to how we did project 3 where we have to input the IP address and port to get a connection. 
+         Basic buttons will be implemented where we have a drop down menu instead of typing it in to save more time.
+         Will have a cool background image.
+      
+
