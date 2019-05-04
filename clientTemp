@@ -1,0 +1,450 @@
+package sample;
+
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.event.Event;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
+
+import java.io.*;
+import java.net.ConnectException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.function.Consumer;
+
+import static java.lang.Integer.parseInt;
+import static javafx.application.Platform.exit;
+
+public class Main extends Application {
+    private Integer Id;
+    private TextArea s2C = new TextArea();
+    private TextArea score = new TextArea();
+    private Button exit = new Button();
+    private Button again = new Button();
+    private Label firstWord = new Label("Waiting...");
+    private Label secondWord = new Label("Waiting...");
+    private Label thirdWord = new Label("Waiting...");
+    private TextField firstAnswer = new TextField();
+    private TextField secondAnswer = new TextField();
+    private TextField thirdAnswer = new TextField();
+    private VBox root2;
+    private VBox root;
+    NetworkConnection conn = createClient();
+
+    private Parent myClientGui(){
+        TextField input = new TextField();
+        TextField input2 = new TextField();
+        Button enter = new Button();
+
+        input.setPromptText("Enter Port number here");
+        input2.setPromptText("Enter IP address here");
+
+        score.setDisable(true);
+
+
+        enter.setText("Connect");
+        enter.setOnAction(event -> {
+            conn.setPort(input.getText());
+            conn.setIP(input2.getText());
+            clientTime();
+        });
+
+        firstAnswer.setMaxHeight(25);
+        firstAnswer.setMaxWidth(150);
+        secondAnswer.setMaxHeight(25);
+        secondAnswer.setMaxWidth(150);
+        thirdAnswer.setMaxHeight(25);
+        thirdAnswer.setMaxWidth(150);
+
+        firstAnswer.setOnAction(event -> conn.checkAnswer(firstAnswer));
+        secondAnswer.setOnAction(event -> conn.checkAnswer(secondAnswer));
+        thirdAnswer.setOnAction(event -> conn.checkAnswer(thirdAnswer));
+
+        secondAnswer.setDisable(true);
+        thirdAnswer.setDisable(true);
+
+        firstAnswer.setPromptText("Enter answer here");
+        secondAnswer.setPromptText("Enter answer here");
+        thirdAnswer.setPromptText("Enter answer here");
+
+
+        BorderPane b = new BorderPane();
+        b.setPadding(new Insets(20));
+
+
+        root = new VBox(20,input, input2, enter, firstWord, firstAnswer, secondWord, secondAnswer, thirdWord, thirdAnswer);
+        conn.changeBoard(score);
+       //root.getChildren().add(s2C);
+        root2 = new VBox(20, score, s2C);
+        b.setCenter(root2);
+        root2.setMaxHeight(300);
+        //root2.setPrefSize(100,150);
+        b.setLeft(root);
+        root.setPrefSize(600,350); //600 by 350
+        exit.setText("Leave Game.");
+        again.setText("Play Again");
+
+        conn.setters(this.s2C, this.score);
+        exit.setOnAction(event -> {
+            //conn.send("quit");
+           // root.getChildren().remove(exit);
+            this.stop();
+            exit();
+        });
+
+        return b;
+    }
+
+
+
+    @Override
+    public void start(Stage primaryStage){
+        conn.setPlayers();
+        primaryStage.setScene(new Scene(myClientGui()));
+        primaryStage.show();
+    }
+
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    public void stop(){
+        try {
+            System.out.println("Called stop");
+            conn.stop();
+        }
+        catch (Exception e){
+            System.out.println("Close failed");
+            System.out.println(e.getMessage());
+            System.out.println(e.getCause());
+            System.out.println(e.getLocalizedMessage());
+            System.out.println(e.getStackTrace());
+
+        }
+
+    }
+
+    public void setBoard(String parseThis){
+        String delims = "99";
+        String[] tokens = parseThis.split(delims);
+        firstWord.setText(tokens[1]);
+        secondWord.setText(tokens[2]);
+        thirdWord.setText(tokens[3]);
+        conn.ONE = tokens[4];
+        conn.TWO = tokens[5];
+        conn.THREE = tokens[6];
+
+        this.Id = Integer.parseInt(tokens[0]);
+        System.out.println("Hello, My ID is: " + this.Id);
+
+        conn.setAnswers(firstAnswer, secondAnswer, thirdAnswer);
+
+    }
+    public myClient createClient(){
+
+        return new myClient(data -> {
+            Platform.runLater(() -> {
+                if(data.toString().intern() == "over"){
+                firstAnswer.setDisable(true);
+                secondAnswer.setDisable(true);
+                thirdAnswer.setDisable(true);
+                root2.getChildren().add(exit);
+                    return;
+                }
+                if(data.toString().intern() == "wait"){
+                    s2C.appendText("\nWaiting for another client to join...");
+                    return;
+                }
+
+                if(data.toString().intern() == "win"){
+                    conn.players[this.Id] = conn.players[this.Id] + 1;
+                    conn.changeBoard(score);
+                    return;
+                }
+                if(data.toString().intern() == "lose"){
+                    ++conn.opWins;
+                    conn.changeBoard(score);
+                    return;
+
+                }
+
+                //if I get here, time to play a game.
+                if(data.toString().intern().length() > 300){
+                    s2C.appendText(data.toString().intern());
+                    score.setDisable(false);
+                    return;
+                }
+
+                if(data.toString().intern().length() > 1) {
+                    setBoard(data.toString().intern());
+                }
+                else{
+
+                    Integer v = Integer.parseInt(data.toString().intern());
+                    conn.players[v] = conn.players[v] + 1;
+                    conn.changeBoard(score);
+                }
+
+            });
+        });
+    }
+
+
+    public void clientTime(){
+        try
+        {
+            conn.setConnection();
+        }
+        catch (Exception e) {
+            System.out.println(e.getLocalizedMessage() + "\n");
+            System.out.println(e.getMessage() + "\n");
+            System.out.println(e.getCause());
+        }
+
+    }
+}
+
+abstract class NetworkConnection{
+
+    public String currInfo, ONE, TWO, THREE;
+    int players[];
+    int rounds[];
+    public Consumer<Serializable> callback;
+    public connect myConnection;
+    public Serializable recentMove;
+    TextArea s2C, score;
+    HashMap<TextField,String> cheatSheet;
+    TextField answer1;
+    TextField answer2;
+    TextField answer3;
+    ArrayList<TextField> order;
+    boolean on;
+    int wins,opWins;
+
+    public NetworkConnection(Consumer<Serializable> data){
+        this.callback = data;
+        wins = 0;
+        opWins = 0;
+        order = new ArrayList<>();
+        cheatSheet = new HashMap<>();
+        players = new int[4];
+        rounds = new int[4];
+    }
+    public void setConnection() throws Exception {
+
+        Socket mysocket = new Socket(getIP(),getPort());
+        System.out.println(getIP() + ": " + getPort());
+        myConnection = new connect(mysocket);
+        on = true;
+        myConnection.start();
+    }
+
+    public void setPlayers(){
+        players[0] = 0;
+        players[1] = 0;
+        players[2] = 0;
+        players[3] = 0;
+
+        rounds[0] = 0;
+        rounds[1] = 0;
+        rounds[2] = 0;
+        rounds[3] = 0;
+
+    }
+
+    public void setAnswers(TextField ans1, TextField ans2, TextField ans3){
+        this.answer1 = ans1;
+        this.answer2 = ans2;
+        this.answer3 = ans3;
+
+        order.add(answer1);
+        order.add(answer2);
+        order.add(answer3);
+
+        cheatSheet.put(answer1,ONE);
+        cheatSheet.put(answer2,TWO);
+        cheatSheet.put(answer3,THREE);
+    }
+
+    public void checkAnswer(TextField answer){
+        String ans = answer.getText();
+        boolean done = true;
+        if(ans.equals(cheatSheet.get(answer))){
+            this.s2C.appendText("Correct!\n");
+            callback.accept("win");
+            send("win");
+            for (TextField t : order){
+
+                if(t.isDisable()){
+                    t.setDisable(false);
+                    done = false;
+                    break;
+                }
+            }
+            if(done == true){
+                send("reset");
+            }
+
+        }
+        else{
+            this.s2C.appendText("Incorrect!\n");
+        }
+
+    }
+
+    public void setters(TextArea s2C, TextArea score){
+        this.s2C = s2C;
+        this.score = score;
+
+    }
+    abstract protected void setPort(String port);
+    abstract protected int getPort();
+    abstract protected String getIP();
+    abstract protected void setIP(String ip);
+
+    public void stop(){
+        try {
+            send("e");
+            on = false;
+            myConnection.connSocket.close();
+        }
+        catch (Exception e){}
+
+    }
+    public void _reset(){
+
+        order.get(0).clear();
+        order.get(0).setDisable(false);
+        order.get(1).clear();
+        order.get(1).setDisable(true);
+        order.get(2).clear();
+        order.get(2).setDisable(true);
+
+        for(int z = 0; z < players.length; ++z){
+            players[z] = 0;
+        }
+
+    }
+    public void checkRoundOver(){
+
+        int i, j;
+        boolean done = false;
+        for(i = 0; i < players.length; ++i){
+            if(players[i] == 3){
+                ++rounds[i];
+                s2C.appendText("Round Over: Player " + i + " has won this round.\n");
+                _reset();
+
+                break;
+            }
+        }
+
+        for(j = 0; j < rounds.length; ++j){
+            if(rounds[j] == 3){
+               s2C.appendText("Game Over! Player " + j + " has won the game. \n");
+               done = true;
+               break;
+            }
+        }
+
+        if(done == true){
+            send("over");
+        }
+    }
+    public void changeBoard(TextArea score){
+        score.clear();
+
+        checkRoundOver();
+        score.appendText("Scoreboard:   Points:    Round:\n" +
+                            "Player: 0        " + players[0] + "            " + rounds[0] + "\n" +
+                            "Player: 1        " + players[1] + "            " + rounds[1] + "\n" +
+                            "Player: 2        " + players[2] + "            " + rounds[2] + "\n" +
+                            "Player: 3        " + players[3] + "            " + rounds[3]
+        );
+
+
+    }
+
+    public void sendMove(Serializable data){
+        this.recentMove = data;
+
+        try{myConnection.out.writeObject(data);}
+        catch (Exception e){System.out.println("Send exception.");}//access output stream and write to it
+    }
+
+    public void send(Serializable data){
+        try{myConnection.out.writeObject(data);}
+        catch (Exception e){System.out.println("Send exception.");}//access output stream and write to it
+    }
+
+    class connect extends Thread{
+        //out and socket here for closing and accessing output stream
+        private ObjectOutputStream out;
+        private ObjectInputStream in;
+        Socket connSocket;
+
+        connect(Socket s){
+            this.connSocket = s;
+
+        }
+
+        public void run() {
+
+            try (
+                    ObjectOutputStream out = new ObjectOutputStream(connSocket.getOutputStream());
+                    ObjectInputStream  in = new ObjectInputStream(connSocket.getInputStream());
+            ) {
+
+                this.out = out;
+                this.in = in;
+                while (on) {
+                    Serializable data = (Serializable) in.readObject();
+                    callback.accept(data);
+                }
+            }
+
+            catch(Exception e){
+                System.out.println("Bad connection ");
+                System.out.println(e.getLocalizedMessage() + "\n");
+                System.out.println(e.getMessage() + "\n");
+                System.out.println(e.getCause());
+            }
+
+        }
+    }
+}
+
+
+class myClient extends NetworkConnection{
+    private int port;
+    private String IP;
+
+    myClient(Consumer<Serializable> data){
+        super(data);
+    }
+
+    protected void setPort(String port) {
+        this.port = parseInt(port);
+    }
+
+    protected int getPort(){
+        return port;
+    }
+
+    protected String getIP(){return IP;}
+    protected void setIP(String IP){this.IP = IP;}
+
+}
